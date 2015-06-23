@@ -12,7 +12,7 @@ Install the plugin in `sourcejs/user` folder:
 npm i sourcejs-example-md-extension --save
 ```
 
-Prepare markdown options `sourcejs/user/options.js`:
+Then prepare markdown options `sourcejs/user/options.js`:
 
 ```
 module.exports = {
@@ -28,7 +28,7 @@ module.exports = {
 };
 ```
 
-Or if you want to add new language renderer only:
+If you want to add new language renderer only, add `languageRenderers` option:
 
 ```
 module.exports = {
@@ -43,3 +43,5 @@ module.exports = {
     ...
 };
 ```
+
+Compatible with SourceJS 0.5.4+.
