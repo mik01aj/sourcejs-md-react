@@ -1,0 +1,7 @@
+{
+  "name": "sourcejs-example-md-extension",
+  "version": "0.1.0",
+  "description": "Example plugin with custom Markdown renderer.",
+  "author": "Robert Haritonov",
+  "license": "MIT"
+}
