@@ -1,47 +1,98 @@
-# Example of Custom Markdown Renderer
+# SourceJS MD-React plugin
+
+A React plugin for [SourceJS](http://sourcejs.com), for using React/JSX components in Markdown specs.
 
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/sourcejs/Source)
 
-Example plugin with custom Markdown renderer for [SourceJS](http://sourcejs.com).
+Compatible with SourceJS 0.5.4+.
+
+
+## Screenshots: seeing is believing
+
+Client- and server-side rendering of React components:
+
+![Screenshot](screenshot1.png)
+
+Original JSX source preview:
+
+![Screenshot](screenshot2.png)
+
 
 ## Quick start
 
 Install the plugin in `sourcejs/user` folder:
 
-```
-npm i sourcejs-example-md-extension --save
-```
-
-Then prepare markdown options `sourcejs/user/options.js`:
-
-```
-module.exports = {
-    core: {
-        processMd: {
-            marked: {
-                renderer: require('sourcejs-example-md-extension/custom-renderer')
-            }
-        }
-        ...
-    }
-    ...
-};
+```bash
+npm install sourcejs-md-react --save
 ```
 
-If you want to add new language renderer only, add `languageRenderers` option:
+Then prepare markdown options in your project's `options.js`:
 
-```
+```js
 module.exports = {
     core: {
         processMd: {
             languageRenderers: {
-                jsx: require('sourcejs-example-md-extension/lang-jsx')
+                'jsx-init-server': require('sourcejs-md-react/lang-jsx').processServerInit,
+                'jsx-init-client': require('sourcejs-md-react/lang-jsx').processClientInit,
+                'jsx-component-init-common': require('sourcejs-md-react/lang-jsx').processComponentInit,
+                'jsx': require('sourcejs-md-react/lang-jsx').processExample,
             }
         }
-        ...
+        // ...
     }
-    ...
+    // ...
 };
 ```
 
-Compatible with SourceJS 0.5.4+.
+(Just merge the code aboe with your current options.)
+
+**NOTE: Hopefully this process will get easier. Stay tuned.**
+
+
+## Usage
+
+Put this in your `specs/something/readme.md`:
+
+    ```jsx-init-server
+    // Put your server-side initialization code here
+    var MyGreatBox = require('my-cool-library/ui/MyGreatBox');
+    ```
+    ```jsx-init-client
+    // Put your client-side initialization and rendering code here
+    require(['http://some.server/myCoolLibrary/bundle.js'], function(bundle) {
+        var MyGreatBox = bundle.MyGreatBox;
+        var React = bundle.React;
+        React.render(COMPONENT, ELEMENT);
+    });
+    ```
+    ```jsx-component-init-common
+    // Put your mock data here
+    var data = {title: 'Hello!'};
+    ```
+
+    # MyGreatBox
+
+    ## MyGreatBox (default)
+
+    ```jsx
+    <MyGreatBox data={ data }>Hello world</MyGreatBox>
+    ```
+
+    ## MyGreatBox (with custom color)
+
+    ```jsx
+    // You can use variables, comments and anything JSX here.
+    var c = '#df444d';
+    <MyGreatBox data={ data } color={ c } size="huge">Here I am</MyGreatBox>
+    ```
+
+
+## FAQ / Common problems
+
+Q: **The items in menu don't show up.**  
+A: Go to the `node_modules/sourcejs` folder and run `grunt update`.
+
+## Contributing
+
+Yes! Please write some unit-tests! :)

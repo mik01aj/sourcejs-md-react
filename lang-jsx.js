@@ -35,9 +35,13 @@ function tryAndHandleError(where, callback) {
     }
 }
 
-function renderComponentServerSide(initJsCode, componentJsCode) {
+function renderComponentServerSide(initJsCode, componentInitJsCode, componentJsCode) {
     return tryAndHandleError('JSX EXAMPLE EVAL', function () {
-        var component = eval(initJsCode + ';' + componentJsCode); // jshint ignore:line
+        var _require = require;
+        var component = (function () {
+            var require = _require.main.require.bind(_require.main); // jshint ignore:line
+            return eval(initJsCode + ';' + componentInitJsCode + ';' + componentJsCode); // jshint ignore:line
+        })();
         return React.renderToString(component);
     });
 }
@@ -51,12 +55,21 @@ exports.processServerInit = function (initJsxCode) {
     });
 };
 
-var clientInitJsCode = '';
+var clientRenderJsCode = '';
 exports.processClientInit = function (initJsxCode) {
     return tryAndHandleError('CLIENT INIT JSX PARSE', function () {
         initJsxCode = '(function (){' + initJsxCode + '})();'; // Wrapping the function to avoid parse errors
-        clientInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
-        //return '<code class="src-js">' + escapeHtml(clientInitJsCode) + '</code>';
+        clientRenderJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        //return '<code class="src-js">' + escapeHtml(clientRenderJsCode) + '</code>';
+        return '';
+    });
+};
+
+var componentInitJsCode = '';
+exports.processComponentInit = function (initJsxCode) {
+    return tryAndHandleError('COMPONENT INIT JSX PARSE', function () {
+        componentInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        //return '<code class="src-js">' + escapeHtml(componentInitJsCode) + '</code>';
         return '';
     });
 };
@@ -65,22 +78,30 @@ exports.processExample = function (componentJsxCode) {
     return tryAndHandleError('EXAMPLE JSX PARSE', function () {
         var uniqueId = _.uniqueId('react-example-');
         var componentJsCode = jstransform.transform(componentJsxCode, {react: true}).code;
-        var renderedHtml = renderComponentServerSide(serverInitJsCode, componentJsCode);
-        var clientSideRenderingCode = clientInitJsCode
-            .replace('COMPONENT', '(' + componentJsCode + ')')
+        var renderedHtml = renderComponentServerSide(serverInitJsCode, componentInitJsCode, componentJsCode);
+
+        // NOTE: we're using eval client side, too, for consistency with the server-side.
+        // This way constructs like `var d = {title: 'Hello'}; <MyBox data={ d } />` can work.
+        // TODO assert COMPONENT and ELEMENT
+        var componentJsCodeWithInit = componentInitJsCode + ';' + componentJsCode;
+        var clientSideRenderingCode = clientRenderJsCode
+            .replace('COMPONENT', 'eval(' + JSON.stringify(componentJsCodeWithInit) + ')')
             .replace('ELEMENT', '$("#' + uniqueId + '")[0]');
+
         return (
             '\n\n' +
-            '<code class="src-html source_visible">' + escapeHtml(componentJsxCode) + '</code>' +
+            '<div class="source_react_jsx" style="display: none">' +
+                '<code class="src-js source_visible">' + escapeHtml(componentJsxCode) + '</code>' +
+            '</div>' +
             // '<code class="src-js">' + escapeHtml(componentJsCode) + '</code>' +
             // '<code class="src-js">' + escapeHtml(clientSideRenderingCode) + '</code>' +
 
             // Client-side rendering script
-            '<div class="source_example" id="' + uniqueId + '"></div>' +
+            '<div class="source_example source_react_clientside" id="' + uniqueId + '"></div>' +
             '<script>$(function () {' + clientSideRenderingCode + '});</script>' +
 
             // Server-side rendered HTML
-            '<div class="source_example">' + renderedHtml + '</div>' +
+            '<div class="source_example source_react_serverside" style="display: none">' + renderedHtml + '</div>' +
             '\n\n'
         );
     });

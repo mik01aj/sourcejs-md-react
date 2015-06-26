@@ -1,0 +1,19 @@
+.source_example.source_react_clientside::before, .source_example.source_react_serverside::before {
+    position: absolute;
+    right: -5px;
+    top: -14px;
+    font-size: 0.7em;
+    text-transform: uppercase;
+    background-color: rgb(240, 240, 240);
+    padding: 0 5px;
+    font-weight: bold;
+    color: rgb(142, 142, 142);
+}
+
+.source_example.source_react_clientside::before {
+    content: 'rendered in the browser';
+}
+
+.source_example.source_react_serverside::before {
+    content: 'rendered server-side';
+}
