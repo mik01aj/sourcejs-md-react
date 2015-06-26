@@ -29,39 +29,57 @@ function tryAndHandleError(where, callback) {
         return (
             '<div class="source_warn">' +
             '<h1>ERROR IN ' + where +  ': ' + err + '</h1>' +
-            '<pre>' + err.stack + '</pre>' +
+            '<pre>' + err.stack + '</pre>' + // TODO: don't display frames after tryAndHandleError
             '</div>'
         );
     }
 }
 
-function renderComponent(initJsCode, componentJsCode) {
+function renderComponentServerSide(initJsCode, componentJsCode) {
     return tryAndHandleError('JSX EXAMPLE EVAL', function () {
         var component = eval(initJsCode + ';' + componentJsCode); // jshint ignore:line
         return React.renderToString(component);
     });
 }
 
-var initJsCode = '';
-exports.processInit = function (initJsxCode) {
-    console.log('PROCESSING INIT!', initJsxCode);
-    return tryAndHandleError('INIT JSX PARSE', function () {
-        initJsCode = jstransform.transform(initJsxCode, {react: true}).code;
-        return '<code class="src-js source_visible">' + escapeHtml(initJsCode) + '</code>';
+var serverInitJsCode = '';
+exports.processServerInit = function (initJsxCode) {
+    return tryAndHandleError('SERVER INIT JSX PARSE', function () {
+        serverInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        //return '<code class="src-js">' + escapeHtml(serverInitJsCode) + '</code>';
+        return '';
     });
 };
 
-exports.processExample = function (jsxCode) {
-    console.log('PROCESSING JSX!', jsxCode);
+var clientInitJsCode = '';
+exports.processClientInit = function (initJsxCode) {
+    return tryAndHandleError('CLIENT INIT JSX PARSE', function () {
+        initJsxCode = '(function (){' + initJsxCode + '})();'; // Wrapping the function to avoid parse errors
+        clientInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        //return '<code class="src-js">' + escapeHtml(clientInitJsCode) + '</code>';
+        return '';
+    });
+};
+
+exports.processExample = function (componentJsxCode) {
     return tryAndHandleError('EXAMPLE JSX PARSE', function () {
         var uniqueId = _.uniqueId('react-example-');
-        var componentJsCode = jstransform.transform(jsxCode, {react: true}).code;
-        var renderedHtml = renderComponent(initJsCode, componentJsCode);
+        var componentJsCode = jstransform.transform(componentJsxCode, {react: true}).code;
+        var renderedHtml = renderComponentServerSide(serverInitJsCode, componentJsCode);
+        var clientSideRenderingCode = clientInitJsCode
+            .replace('COMPONENT', '(' + componentJsCode + ')')
+            .replace('ELEMENT', '$("#' + uniqueId + '")[0]');
         return (
             '\n\n' +
-            '<code class="src-html source_visible">' + escapeHtml(jsxCode) + '</code>' +
-            '<code class="src-js">' + escapeHtml(componentJsCode) + '</code>' +
-            '<div id="' + uniqueId + '"></div>' +
+            '<code class="src-html source_visible">' + escapeHtml(componentJsxCode) + '</code>' +
+            // '<code class="src-js">' + escapeHtml(componentJsCode) + '</code>' +
+            // '<code class="src-js">' + escapeHtml(clientSideRenderingCode) + '</code>' +
+
+            // Client-side rendering script
+            '<div class="source_example" id="' + uniqueId + '"></div>' +
+            '<script>$(function () {' + clientSideRenderingCode + '});</script>' +
+
+            // Server-side rendered HTML
             '<div class="source_example">' + renderedHtml + '</div>' +
             '\n\n'
         );
