@@ -93,6 +93,11 @@ Put this in your `specs/something/readme.md`:
 Q: **The items in menu don't show up.**  
 A: Go to the `node_modules/sourcejs` folder and run `grunt update`.
 
+## Thanks to
+
+* @operatino for [SourceJS](http://sourcejs.com) and his support
+* @szarouski for his original [React plugin for SourceJS](https://github.com/szarouski/sourcejs-react).
+
 ## Contributing
 
 Yes! Please write some unit-tests! :)

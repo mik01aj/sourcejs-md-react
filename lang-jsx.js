@@ -1,6 +1,7 @@
 'use strict';
 
 var jstransform = require('node-jsx/node_modules/jstransform/simple');
+var transformSettings = {react: true, es6: true}; // TODO make this configurable
 
 require('node-jsx').install({extension: '.jsx', harmony: true});
 
@@ -49,7 +50,7 @@ function renderComponentServerSide(initJsCode, componentInitJsCode, componentJsC
 var serverInitJsCode = '';
 exports.processServerInit = function (initJsxCode) {
     return tryAndHandleError('SERVER INIT JSX PARSE', function () {
-        serverInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        serverInitJsCode = jstransform.transform(initJsxCode, transformSettings).code;
         //return '<code class="src-js">' + escapeHtml(serverInitJsCode) + '</code>';
         return '';
     });
@@ -59,7 +60,7 @@ var clientRenderJsCode = '';
 exports.processClientInit = function (initJsxCode) {
     return tryAndHandleError('CLIENT INIT JSX PARSE', function () {
         initJsxCode = '(function (){' + initJsxCode + '})();'; // Wrapping the function to avoid parse errors
-        clientRenderJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        clientRenderJsCode = jstransform.transform(initJsxCode, transformSettings).code;
         //return '<code class="src-js">' + escapeHtml(clientRenderJsCode) + '</code>';
         return '';
     });
@@ -68,7 +69,7 @@ exports.processClientInit = function (initJsxCode) {
 var componentInitJsCode = '';
 exports.processComponentInit = function (initJsxCode) {
     return tryAndHandleError('COMPONENT INIT JSX PARSE', function () {
-        componentInitJsCode = jstransform.transform(initJsxCode, {react: true}).code;
+        componentInitJsCode = jstransform.transform(initJsxCode, transformSettings).code;
         //return '<code class="src-js">' + escapeHtml(componentInitJsCode) + '</code>';
         return '';
     });
@@ -77,7 +78,7 @@ exports.processComponentInit = function (initJsxCode) {
 exports.processExample = function (componentJsxCode) {
     return tryAndHandleError('EXAMPLE JSX PARSE', function () {
         var uniqueId = _.uniqueId('react-example-');
-        var componentJsCode = jstransform.transform(componentJsxCode, {react: true}).code;
+        var componentJsCode = jstransform.transform(componentJsxCode, transformSettings).code;
         var renderedHtml = renderComponentServerSide(serverInitJsCode, componentInitJsCode, componentJsCode);
 
         // NOTE: we're using eval client side, too, for consistency with the server-side.
@@ -85,7 +86,7 @@ exports.processExample = function (componentJsxCode) {
         // TODO assert COMPONENT and ELEMENT
         var componentJsCodeWithInit = componentInitJsCode + ';' + componentJsCode;
         var clientSideRenderingCode = clientRenderJsCode
-            .replace('COMPONENT', 'eval(' + JSON.stringify(componentJsCodeWithInit) + ')')
+            .replace('COMPONENT', 'eval(' + JSON.stringify(componentJsCodeWithInit) + ')') // TODO check that component doesn't return undefined
             .replace('ELEMENT', '$("#' + uniqueId + '")[0]');
 
         return (

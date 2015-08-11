@@ -1,8 +1,8 @@
 {
   "name": "sourcejs-md-react",
   "version": "0.1.0",
-  "description": "Example plugin with custom Markdown renderer.",
-  "author": "Robert Haritonov",
+  "description": "Sourcejs-MD-React plugin",
+  "author": "Mikolaj Dadela",
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.9.3",

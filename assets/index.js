@@ -38,10 +38,12 @@ define([
     MdReactPlugin.prototype.constructor = MdReactPlugin;
 
     MdReactPlugin.prototype.init = function () {
+        // TODO: if there are no React components, return and don't add the menu items.
         this.addMenuItems();
     };
 
     MdReactPlugin.prototype.addMenuItems = function(){
+
         function toggle(clientOrServer, showOrHide) {
             $('.source_example.source_react_' + clientOrServer + 'side')[showOrHide]();
         }
@@ -70,9 +72,7 @@ define([
             },
         ], this);
 
-        // TODO fix this
-        innerNavigation.addMenuItem(
-            "Show Components' JSX source",
+        innerNavigation.addMenuItem("Show Components' JSX source",
             function() { $('.source_react_jsx').show(); },
             function() { $('.source_react_jsx').hide(); }
         );
