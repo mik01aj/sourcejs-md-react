@@ -15,11 +15,6 @@ define([
 
     var moduleCss = new css("/node_modules/sourcejs-md-react/assets/css/react_examples.css");
 
-    // console.log('lb', lb);
-    // window.lbReactFrontend = lb;
-
-    console.log('HELLO!');
-
     function MdReactPlugin() {
 
         var _this = this;
